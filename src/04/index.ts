@@ -61,19 +61,41 @@ export function countNeighboringRolls(coord: Coord, diagram: Diagram) {
   ).length;
 }
 
+export function isAccessible(coord: Coord, diagram: Diagram) {
+  return countNeighboringRolls(coord, diagram) < 4;
+}
+
 // Part 1
 export function part1(lines: string[]) {
   const diagram = parseDiagram(lines);
-  return [...diagram.rollsCoords.values()].reduce((acc, cs) => {
-    return countNeighboringRolls(parseCoordStr(cs), diagram) < 4
-      ? acc + 1
-      : acc;
-  }, 0);
+  return [...diagram.rollsCoords.values()].reduce(
+    (acc, cs) => (isAccessible(parseCoordStr(cs), diagram) ? acc + 1 : acc),
+    0
+  );
 }
 
 // Part 2
+function removeAccessible(diagram: Diagram): Diagram {
+  return {
+    ...diagram,
+    rollsCoords: new Set(
+      [...diagram.rollsCoords.values()].filter(
+        (cs) => !isAccessible(parseCoordStr(cs), diagram)
+      )
+    ),
+  };
+}
 export function part2(lines: string[]) {
-  return 0;
+  let diagram = parseDiagram(lines);
+  let startingRolls = diagram.rollsCoords.size;
+
+  while (true) {
+    let nextDiagram = removeAccessible(diagram);
+    if (nextDiagram.rollsCoords.size === diagram.rollsCoords.size) break;
+    diagram = nextDiagram;
+  }
+
+  return startingRolls - diagram.rollsCoords.size;
 }
 
 export function run() {
