@@ -89,8 +89,42 @@ export function part1(lines: string[], iterations = 1000) {
 }
 
 // Part 2
-export function part2(lines: string[]) {
-  return 0;
+function getNumCircuits(
+  junctionBoxToCircuit: Map<CoordStr, CircuitId>
+): number {
+  return new Set([...junctionBoxToCircuit.values()]).size;
+}
+
+export function part2(lines: string[], iterations = 1000) {
+  const junctionBoxCoords = parseCoords(lines as CoordStr[]);
+
+  const pairDistances: PairDistance[] = [];
+  const junctionBoxToCircuit = new Map<CoordStr, CircuitId>();
+  for (let i = 0; i < junctionBoxCoords.length; i++) {
+    const c1 = junctionBoxCoords[i];
+    junctionBoxToCircuit.set(toCoordStr(c1), i as CircuitId);
+    for (let j = i + 1; j < junctionBoxCoords.length; j++) {
+      const c2 = junctionBoxCoords[j];
+      pairDistances.push({
+        coordPairStr: `${toCoordStr(c1)}->${toCoordStr(c2)}`,
+        distance: calcDistance(c1, c2),
+      });
+    }
+  }
+  // Sort pairs by distance
+  pairDistances.sort((a, b) => a.distance - b.distance);
+
+  let cps1: CoordStr, cps2: CoordStr;
+  while (true) {
+    [cps1, cps2] = splitCoordPairStr(pairDistances[i].coordPairStr);
+    const circuit1 = junctionBoxToCircuit.get(cps1) as CircuitId;
+    const circuit2 = junctionBoxToCircuit.get(cps2) as CircuitId;
+    mergeCircuits(junctionBoxToCircuit, circuit1, circuit2);
+
+    if (getNumCircuits(junctionBoxToCircuit) === 1) break;
+  }
+
+  return parseCoord(cps1).x * parseCoord(cps2).x;
 }
 
 export function run() {

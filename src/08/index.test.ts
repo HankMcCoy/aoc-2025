@@ -39,7 +39,7 @@ describe("Day 08", () => {
   });
   describe("Part 2", () => {
     it("works", () => {
-      expect(part2(testLines)).toBe(0);
+      expect(part2(testLines)).toBe(25272);
     });
   });
 });
