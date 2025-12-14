@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { part1, part2 } from "./index";
+import { CoordStr, parseCoords, part1, part2 } from "./index";
 
 const testLines = `162,817,812
 57,618,57
@@ -20,9 +20,18 @@ const testLines = `162,817,812
 941,993,340
 862,61,35
 984,92,344
-425,690,689`.split("\n");
+425,690,689`.split("\n") as CoordStr[];
 
 describe("Day 08", () => {
+  describe("parseCoords", () => {
+    it("works", () => {
+      const coords = parseCoords(testLines);
+      expect(coords.length).toBe(20);
+      expect(coords[0]).toEqual({ x: 162, y: 817, z: 812 });
+      expect(coords[19]).toEqual({ x: 425, y: 690, z: 689 });
+    });
+  });
+
   describe("Part 1", () => {
     it("works", () => {
       expect(part1(testLines, 10)).toBe(40);

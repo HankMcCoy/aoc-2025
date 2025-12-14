@@ -1,4 +1,3 @@
-import { calc } from "src/06";
 import { readLines } from "../../util/readLines";
 
 type Coord = { x: number; y: number; z: number };
@@ -14,14 +13,11 @@ function toCoordStr(c: Coord) {
 }
 
 function parseCoord(coordStr: string): Coord {
-  const [x, y, z] = coordStr
-    .split(",")
-    .sort()
-    .map((s) => parseInt(s, 10));
+  const [x, y, z] = coordStr.split(",").map((s) => parseInt(s, 10));
   return { x, y, z };
 }
 
-function parseCoords(lines: CoordStr[]): Coord[] {
+export function parseCoords(lines: CoordStr[]): Coord[] {
   return lines.map(parseCoord);
 }
 function splitCoordPairStr(coordPairStr: CoordPairStr): [CoordStr, CoordStr] {
@@ -30,11 +26,22 @@ function splitCoordPairStr(coordPairStr: CoordPairStr): [CoordStr, CoordStr] {
 function parseCoordPairStr(coordPairStr: CoordPairStr): [Coord, Coord] {
   return splitCoordPairStr(coordPairStr).map(parseCoord) as [Coord, Coord];
 }
-type CoordStr = `${number},${number},${number}`;
+export type CoordStr = `${number},${number},${number}`;
 type CoordPairStr = `${CoordStr}->${CoordStr}`;
 
 type CircuitId = number & { __brand: "CircuitId" };
 type PairDistance = { coordPairStr: CoordPairStr; distance: number };
+
+// Merge c2 into c1
+export function mergeCircuits(
+  junctionBoxToCircuit: Map<CoordStr, CircuitId>,
+  c1: CircuitId,
+  c2: CircuitId
+) {
+  [...junctionBoxToCircuit.entries()]
+    .filter(([_coord, cid]) => cid === c2)
+    .forEach(([coord]) => junctionBoxToCircuit.set(coord, c1));
+}
 // Part 1
 export function part1(lines: string[], iterations = 1000) {
   const junctionBoxCoords = parseCoords(lines as CoordStr[]);
@@ -56,9 +63,10 @@ export function part1(lines: string[], iterations = 1000) {
   pairDistances.sort((a, b) => a.distance - b.distance);
 
   for (let i = 0; i < iterations; i++) {
-    console.log({ pairDistances, i });
     const [cps1, cps2] = splitCoordPairStr(pairDistances[i].coordPairStr);
-    junctionBoxToCircuit.set(cps2, junctionBoxToCircuit.get(cps1) as CircuitId);
+    const circuit1 = junctionBoxToCircuit.get(cps1) as CircuitId;
+    const circuit2 = junctionBoxToCircuit.get(cps2) as CircuitId;
+    mergeCircuits(junctionBoxToCircuit, circuit1, circuit2);
   }
 
   const circuitSizes = new Map<CircuitId, number>();
@@ -66,6 +74,7 @@ export function part1(lines: string[], iterations = 1000) {
   for (let circuitId of junctionBoxToCircuit.values()) {
     circuitSizes.set(
       circuitId,
+      // Get the number of junction boxes associated with a circuit
       coordCircuitPairs.filter(([_, cid]) => {
         return cid === circuitId;
       }).length
